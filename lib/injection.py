@@ -124,7 +124,7 @@ class InjectionManager:
         Return the result from the verificationFunction (should be -1,0,1) and a list of elements "connParams" ready to be inserted in possibleVuln/sureVuln list
         """              
         
-        def removeEqual(tup, injParam):
+        def removeEqualFunc(tup, injParam):
             """
             Supporting function: as some injection requires the parameter not to appear in the standard form param=value but as para[sth]=value
             This method removes the equal from the injection.
@@ -145,7 +145,8 @@ class InjectionManager:
             tmpDic[injParam]=injectString
         connParams = self.conn.buildUri(tmpDic)
         if removeEqual:
-            connParams = removeEqual(connParams, injParam)
+
+            connParams = removeEqualFunc(connParams, injParam)
         code, length = self.conn.doConnection(connParams)
         if code != 200: #if no good answer pass to successive test
             return False
@@ -223,7 +224,7 @@ class InjectionManager:
                     m = "Using %s for injection testing" % (injectWhereString)
                     Logger.info(m)
                     origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
-                    res, connParams = self.__performInjection(verifyFunction, params, injectWhereString, False)
+                    res, connParams = self.__performInjection(verifyFunction, params, injectWhereString)
                     cic = cic or self.__saveResult(res, connParams)
                     self.__logResult(res)
         self.successfulAttacks[funcName] = cic

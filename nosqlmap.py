@@ -35,7 +35,6 @@ import lib.injection as InjectionManager
 
 TEST = False
 
-options = Options()
 
 if TEST:
     import testing
@@ -52,6 +51,7 @@ if TEST:
     # global myPort
 
 def mainMenu():
+
     select = True
     while select:
         if sys.platform.startswith('linux') or sys.platform.startswith('freebsd'):
@@ -87,6 +87,7 @@ def mainMenu():
                 raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
 
         elif select == "4":
+            print "Bye Bye"
             sys.exit()
         else:
             raw_input("Invalid Selection.  Press enter to continue.")
@@ -833,7 +834,11 @@ def webApps():
             4: injection.mongoTimeBasedInjection,
             }
     for t in usedTests:
+        print "="*40
+        print
+        print
         tests[t]()
+        raw_input("continue")
 
     print "\nVunerable URLs:"
     print "\n".join(injection.vulnAddrs)
@@ -858,10 +863,12 @@ def webApps():
 
     raw_input("Press enter to continue...")
 
+options = Options()
 usedTests=[2]
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing
+
     options.victim = "192.168.178.162" 
     options.webPort = 80
     options.uri = "/payments/acct.php"

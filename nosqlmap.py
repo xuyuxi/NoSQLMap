@@ -34,7 +34,7 @@ import lib.HTTPconnections as HTTPconnections
 import lib.injection as InjectionManager
 
 TEST = False
-
+Logger()
 
 if TEST:
     import testing
@@ -857,7 +857,7 @@ def webApps():
     if fileOut == "y" or fileOut == "Y":
         savePath = raw_input("Enter output file name: ")
         fo = open(savePath, "wb")
-        fo.write ("Vulnerable URLs:")
+        fo.write ("Vulnerable URLs:\n")
         for el in injection.sureVuln:
             el.write(fo)
         fo.write("\n\n")
@@ -868,16 +868,17 @@ def webApps():
     raw_input("Press enter to continue...")
 
 options = Options()
-usedTests=[1]
+usedTests=[4]
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing
 
     options.victim = "192.168.178.162" 
     options.webPort = 80
-    options.uri = "/payments/acct.php"
+#    options.uri = "/payments/acct.php"
+    options.uri ="/payments/orderdata.php"
     options.httpMethod = 1
-    options.payload = "acctid=1"
+    options.payload = "ordersearch=1"
 
     webApps()
 

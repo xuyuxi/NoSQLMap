@@ -1,6 +1,6 @@
 
 from exceptions import ParameterError 
-from log import Log
+from log import Logger
 
 
 class Result():
@@ -18,12 +18,15 @@ class Result():
                 self.method = "POST"
                 self.payload=params[1]
             else:
-                Log.error("Missing method in Results")
+                Logger.error("Missing method in Results")
                 raise ParameterError
         except IndexError:
-            Log.error("Missing params in Results")
+            Logger.error("Missing params in Results")
             raise ParameterError
 
-    def write(fd):
-        m = "%s %s %s" %(self.method, self.url, self.payload)
+    def write(self, fd):
+        if self.method=="GET":
+            m="%s %s" %(self.method, self.url)
+        else:
+            m = "%s %s %s" %(self.method, self.url, self.payload)
         print >> fd, m 

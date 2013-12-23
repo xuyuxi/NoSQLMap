@@ -70,10 +70,7 @@ class ConnectionManager:
         try:
             if self.method == 1:
                 con = urllib2.urlopen(tup[0])
-                print tup[0]
             else:
-                print tup[0]
-                print tup[1]
                 con = urllib2.urlopen(tup[0], data=tup[1])
             cod = con.getcode()
             res = con.read()

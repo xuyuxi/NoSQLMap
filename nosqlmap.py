@@ -825,7 +825,7 @@ def webApps():
         vulnParam = Logger.logRequest("Insert vulnerable parameter (leave empty for running on all): ")
         checkParam = True if not vulnParam else conn.checkVulnParam(vulnParam)
 
-    injection = InjectionManager.InjectionManager(conn, length, vulnParam)
+    injection = InjectionManager.InjectionManager(conn, options, length, vulnParam)
     
     tests = {
             1: injection.mongoPHPNotEqualAssociativeArray,
@@ -840,11 +840,14 @@ def webApps():
         tests[t]()
         raw_input("continue")
 
-    print "\nVunerable URLs:"
-    print "\n".join(injection.vulnAddrs)
-    print "\nPossibly vulnerable URLs:"
-    print "\n".join(injection.possAddrs)
-    print "\n"
+    print "Vunerable URLs:"
+    #print "\n".join(injection.sureVuln)
+    for el in injection.sureVuln:
+        el.write(sys.stdout)
+    print "Possibly vulnerable URLs:"
+    #print "\n".join(injection.possAddr)
+    for el in injection.possVuln:
+        el.write(sys.stdout)
 
     for el in injection.successfulAttacks:
         print "%s -> %s" % (el, injection.successfulAttacks[el])
@@ -854,17 +857,18 @@ def webApps():
     if fileOut == "y" or fileOut == "Y":
         savePath = raw_input("Enter output file name: ")
         fo = open(savePath, "wb")
-        fo.write ("Vulnerable URLs:\n")
-        fo.write("\n".join(injection.vulnAddrs))
+        fo.write ("Vulnerable URLs:")
+        for el in injection.sureVuln:
+            el.write(fo)
         fo.write("\n\n")
         fo.write("Possibly Vulnerable URLs:\n")
-        fo.write("\n".join(injection.possAddrs))
-        fo.write("\n")
+        for el in injection.possVuln:
+            el.write(fo)
 
     raw_input("Press enter to continue...")
 
 options = Options()
-usedTests=[2]
+usedTests=[1]
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing

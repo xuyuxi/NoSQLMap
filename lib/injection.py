@@ -49,7 +49,7 @@ class InjectionManager:
             }
     randInjDelta = 100
 
-    def __init__(self, connection, standard_length,vulnParam=""):
+    def __init__(self, connection, options,standard_length,vulnParam=""):
         """
         Initialize the object.
         Needs an HTTPConnection object (see related method), a standard length for the page (will be used for checking if injection succeeded or not) 
@@ -61,6 +61,7 @@ class InjectionManager:
         """
 
         self.conn = connection
+        self.options = options 
         self.dictOfParams = connection.payload
         if vulnParam:
             self.testingParams = [vulnParam]
@@ -100,14 +101,16 @@ class InjectionManager:
         Take as input a result value (-1,0,1) and save in sureVuln or possVuln the connection parameters allowing the injection.
         Return True if attack possible/succeeded, False otherwise.
         """
+        
+        res = Result(self.options.httpMethod, connParams)
 
         if result == -1:
             return False
         elif result == 0:
-            self.possVuln.append(connParams)
+            self.possVuln.append(res)
             return True
         else:
-            self.sureVuln.append(connParams)
+            self.sureVuln.append(res)
             return True
 
     def __performInjection(self, verificationFunction, injParam="", injectString="", removeEqual=False, dummyInjection=False):
@@ -227,6 +230,7 @@ class InjectionManager:
                     res, connParams = self.__performInjection(verifyFunction, params, injectWhereString)
                     cic = cic or self.__saveResult(res, connParams)
                     self.__logResult(res)
+                    raw_input("cnt")
         self.successfulAttacks[funcName] = cic
 
     def mongoThisNotEqualEscape(self):

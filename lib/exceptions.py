@@ -27,3 +27,6 @@ class MinParametersViolation(Exception):
 
 class ConnectionError(Exception):
     pass
+
+class ParameterError(Exception):
+    pass
